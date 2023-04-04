@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset=utf-8 />
+    <title>Describe How the Assignment Works</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+    <link href='http://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: whitesmoke;
+            font-family: Lato, sans-serif;
+            color: #0D0000;
+        }
+        header {
+            padding: 6px 10%;
+        }
+        h1 {
+            display: inline-block;
+            margin-right: 20px;
+            color: #001323;
+        }
+        h2 {
+            display: inline-block;
+            color: #001323;
+        }
+        #map {
+            width: 80%;
+            height: 540px;
+            margin: 10px auto;
+        }
+        footer {
+            padding: 6px 10%;
+            width: 80%;
+        }
+        p {
+            font-size: 1em;
+            color: #001323;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Challenge 2 A</h1>
+        <h2>Proportional Symbol Map</h2>
+    </header>
+
+    <div id='map'></div>
+
+    <footer>
+        <p>Map authored by Peter</p>
+        <p>Covid-19 Death Map.</p>
+    </footer>
+
+    <script src="Covid19_data.js"></script>
+    <script>
+
+      var map = L.map('map', {
+          center: [15,0],
+          zoom: 2,
+      });
+      
+      var tiles = L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+          subdomains: 'abcd',
+          maxZoom: 19
+      });  
+      
+      tiles.addTo(map);
+        
+    
+    
+    
+      L.geoJson(countries, {
+          pointToLayer: function(feature,latlng) {
+              console.log(feature.properties)
+              return L.circleMarker(latlng, {
+                 color: 'orange',
+                 weight: 2,
+                 fillColor: 'yellow',
+                 fillOpacity: .5,
+                 radius: getRadius(feature.properties.Deaths_cumulative_total) //step4
+              });   
+          },
+          
+      filter : function(feature, layer){
+              if(feature.properties.Name){
+                  return true
+              };
+             console.log(feature);
+          },
+         
+    //step 5
+    onEachFeature : function(feature,layer) {
+    layer.on('mouseover', function() {
+    var deaths = feature.properties.Deaths_cumulative_total;
+    var fillColor = 'yellow';
+
+    // set the fill color based on three categories of deaths
+    if (deaths <= 150000) {
+      fillColor = 'green';
+    } else if (deaths > 150000 && deaths < 300000) {
+      fillColor = 'blue';
+    } else {
+      fillColor = 'red';
+    }
+
+    layer.setStyle({
+      fillColor: fillColor
+    });
+  });
+layer.on('mouseout', function() {
+    layer.setStyle({
+        fillColor: 'yellow'
+    });
+});
+
+
+          //step 6  
+          
+          var name = feature.properties.Name
+          var deaths = feature.properties.Deaths_cumulative_total
+          var popup = ("<b>"+name+"</b><br>"
+          + " Deaths : " +deaths+ "<br>")
+                       layer.bindPopup(popup)
+          }
+          
+          
+      }).addTo(map);
+
+        function getRadius(area){
+        var radius = Math.sqrt(area/Math.PI);
+        return radius *.05   
+    }
+          
+
+    var legend = L.control({position: 'bottomright'});
+
+    // When the legend is added to the map, execute this function
+    legend.onAdd = function (map) {
+    
+    // Create a new <div> element with a class of "legend"
+    var div = L.DomUtil.create('div', 'legend');
+    
+    // Add some text to the <div> element
+    div.innerHTML += '<h4>Legend</h4>';
+    div.innerHTML += '<span style="color: green"><i></i> Deaths &lt;= 150000<br>';
+    div.innerHTML += '<span style="color: blue"><i></i> 150000 &lt; Deaths &le; 300000</span><br>';
+    div.innerHTML += '<span style="color: red"><i></i> Deaths &gt; 300000<br>';
+    
+    // Add background style with white color
+    div.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
+    div.style.padding = '10px';
+    div.style.borderRadius = '5px';
+    div.style.boxShadow = '0 0 5px rgba(0, 0, 0, 0.4)';
+
+    
+    return div;
+};
+
+// Add the legend to the map
+legend.addTo(map);
+
+
+    </script>
+    
+</body>
+
+</html>
